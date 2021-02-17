@@ -1,2 +1,2 @@
 # Nitro-Bot
-saaa
+Bot just like NQN but it does more then it.
