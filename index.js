@@ -10,6 +10,8 @@ var http = require('http');
 var exp = new express() ;
 var PORT = process.env.PORT || 5000;
 
+var keepAliveTimeId;
+
 var serviceAccount = {
     "type": "service_account",
     "project_id": process.env.project_id,
@@ -309,8 +311,27 @@ exp.get('/', async (req, res)=>{
     }
 });
 
+
+function startKeepAlive(){
+console.log("startKeepAlive");
+keepAliveTimeId = setInterval(async function() {
+  console.log("Pinging to herokuapp");
+  var url = 'https://nitro-bot-discord-97.herokuapp.com/';
+  unirest.get(url)
+  .end(function(res) {
+    if (res.error) {
+      console.log('error in pinging') ;
+    }
+    else {
+      console.log("Pinging done with response - "+ res.raw_body);
+   }
+ });
+}, 60000*10);//keep pinging server in 10 min
+}
+
 var server = http.createServer(exp);
 
 server.listen(PORT,(req, res)=>{
                     console.log('Server listening in '+ PORT);
+                    startKeepAlive();
                     });
