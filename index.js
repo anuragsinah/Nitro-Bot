@@ -258,7 +258,7 @@ client.on('message', async (message) => {
               userName = message.author.username;
             }
             else {
-              userName = message.author.username;
+              userName = message.member.nickname;
             }
             const webhooks = await message.channel.fetchWebhooks();
             var webhook = webhooks.find(wb => { return wb.name === 'Nito-Bot'  });
@@ -267,7 +267,7 @@ client.on('message', async (message) => {
                 console.log(`Created webhook hi ${JSON.stringify(webhook, null, 2)}`);
             }
             var webhookResponse = await webhook.send(replyMessage, {
-                username:  message.author.username,
+                username:  userName,
                 avatarURL: "https://cdn.discordapp.com/avatars/" + message.author.id + "/" + message.author.avatar + ".png"
             });
             console.log(message.content + " to delete");
