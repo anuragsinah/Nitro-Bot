@@ -1,7 +1,5 @@
-const {
-    Client
-} = require('discord.js');
-const client = new Client();
+const Discord = require('discord.js');
+const client = new Discord.Client();
 const admin = require('firebase-admin');
 fs = require('fs');
 var unirest = require('unirest');
@@ -157,6 +155,15 @@ function saveEmoteInDb(realEmoteName,realEmoteId,animated){
    });
   }
 }
+
+async function referencedMessage(message) {
+  console.log(message.reference);
+  if (!message.reference) return null;
+  const referenceChannel = await message.client.channels.fetch(message.reference.channelID);
+  if (!referenceChannel) return null;
+  return await message.channel.messages.fetch(message.reference.messageID);
+}
+
 client.on('message', async (message) => {
     try {
         console.log("Incoming message ",message.content);
@@ -164,6 +171,32 @@ client.on('message', async (message) => {
         createEmoteArray(message.content);
         createAnimatedEmoteArray(message.content);
         console.log(emoteArrayIndex);
+        const PREFIX = '';
+	      let args = message.content.substring(PREFIX.length).split(" ");
+        args[0] = args[0].toLowerCase();
+        messageRefrenced =await referencedMessage(message);
+        if(messageRefrenced != null && args[0] == 'e.r'){
+          var emote = checkForEmoteIncache(args[1]);
+          if(emote == ''){
+            var emoteinDb = checkForEmoteInDb(args[1]);
+            console.log("emoteinDb",emoteinDb);
+            if(emoteinDb == ''){
+              message.channel.send("Could not find emote: \n`"+args[1]+"`").then(msg => {
+                             msg.delete({ timeout: 10000 })
+                          })
+                          .catch(e=> console.log(e));
+            }else{
+              message.channel.send("The following emote cannot be used in reactions:\n`"+args[1]+"`\nIf you upload it to a server the bot's in, it will become usable in reactions!").then(msg => {
+                             msg.delete({ timeout: 10000 })
+                          })
+                          .catch(e=> console.log(e));
+            }
+          }
+          else{
+            messageRefrenced.react(emote);
+          }
+          return await message.delete();
+        }
         var replyMessage = "";
         var emoteAdded = false;
         var findingColon = false;
@@ -225,11 +258,11 @@ client.on('message', async (message) => {
                     lastColon = realAnimatedEmote.lastIndex;
                     realEmoteId  = message.content.substring(indexOfEmoteEndColon+1,realAnimatedEmote.lastIndex-1);
                     if(message.content.length != realAnimatedEmote.lastIndex ){
-                      if(message[lastColon]==":"){
+                      if(message.content[lastColon]==":"){
                         findingColon =true;
                       }
                       else{
-                        replyMessage = replyMessage + message[lastColon];
+                        replyMessage = replyMessage + message.content[lastColon];
                         findingColon = false;
                       }
                     }
@@ -266,10 +299,27 @@ client.on('message', async (message) => {
                 webhook = await message.channel.createWebhook('Nito-Bot');
                 console.log(`Created webhook hi ${JSON.stringify(webhook, null, 2)}`);
             }
-            var webhookResponse = await webhook.send(replyMessage, {
-                username:  userName,
-                avatarURL: "https://cdn.discordapp.com/avatars/" + message.author.id + "/" + message.author.avatar + ".png"
-            });
+            if(messageRefrenced != null){
+                var messageUrl = "https://discord.com/channels/"+message.reference.guildID+"/"+message.reference.channelID+"/"+message.reference.messageID;
+                const exampleEmbed = new Discord.MessageEmbed()
+                    .setColor('#0099ff')
+                    .setAuthor(messageRefrenced.author.username, "https://cdn.discordapp.com/avatars/" + messageRefrenced.author.id + "/" + messageRefrenced.author.avatar + ".png")
+                    .setDescription(messageRefrenced.content)
+                    .addField('**Jump**', '[Go to message]('+messageUrl+')')
+                    .setFooter('#'+messageRefrenced.channel.name)
+                    .setTimestamp(messageRefrenced.createdAt);
+                var webhookResponse = await webhook.send(replyMessage, {
+                    username:   userName,
+                    avatarURL: "https://cdn.discordapp.com/avatars/" + message.author.id + "/" + message.author.avatar + ".png",
+                    embeds: [exampleEmbed]
+                });
+            }
+            else{
+              var webhookResponse = await webhook.send(replyMessage, {
+                  username:   userName,
+                  avatarURL: "https://cdn.discordapp.com/avatars/" + message.author.id + "/" + message.author.avatar + ".png"
+              });
+            }
             console.log(message.content + " to delete");
             console.log(webhookResponse + " webhookResponse");
             if(webhookResponse != null || webhookResponse != undefined){
