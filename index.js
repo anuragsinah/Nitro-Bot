@@ -39,6 +39,12 @@ client.on('ready', () => {
 
 emoteMap = {};
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function getCollection() {
     console.log('getCollection');
     db.collection('nitroBot').onSnapshot(function(snapshot){
@@ -164,6 +170,12 @@ async function referencedMessage(message) {
   return await message.channel.messages.fetch(message.reference.messageID);
 }
 
+async function removeReaction(message,emote) {
+  console.log("removeReaction");
+  await sleep(15000);
+  message.reactions.cache.find(r => r.emoji.name == emote).users.remove(client.user.id );
+}
+
 client.on('message', async (message) => {
     try {
         console.log("Incoming message ",message.content);
@@ -193,10 +205,12 @@ client.on('message', async (message) => {
             }
           }
           else{
-            messageRefrenced.react(emote);
+            await messageRefrenced.react(emote);
+            removeReaction(messageRefrenced,args[1]);
           }
           return await message.delete();
         }
+        else{
         var replyMessage = "";
         var emoteAdded = false;
         var findingColon = false;
@@ -327,7 +341,7 @@ client.on('message', async (message) => {
               console.log("deleted");
             }
         }
-
+      }
     } catch (err) {
         console.error(err);
     }
