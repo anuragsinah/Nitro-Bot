@@ -114,6 +114,8 @@ function checkForEmote(emoteName) {
 var emoteArrayIndex = [];
 var emoteRegex = /<:[a-zA-Z0-9_~]+:[0-9]+>/g;
 var emoteAnimatedRegex = /<a:[a-zA-Z0-9_~]+:[0-9]+>/g;
+var emoteRegexString = /^<:[a-zA-Z0-9_~]+:[0-9]+>$/g;
+var emoteAnimatedRegexString = /^<a:[a-zA-Z0-9_~]+:[0-9]+>$/g;
 
 function createEmoteArray(message) {
     while ((match = emoteRegex.exec(message)) != null) {
@@ -188,25 +190,37 @@ client.on('message', async (message) => {
         args[0] = args[0].toLowerCase();
         messageRefrenced =await referencedMessage(message);
         if(messageRefrenced != null && args[0] == 'e.r'){
-          var emote = checkForEmoteIncache(args[1]);
-          if(emote == ''){
-            var emoteinDb = checkForEmoteInDb(args[1]);
-            console.log("emoteinDb",emoteinDb);
-            if(emoteinDb == ''){
-              message.channel.send("Could not find emote: \n`"+args[1]+"`").then(msg => {
-                             msg.delete({ timeout: 10000 })
-                          })
-                          .catch(e=> console.log(e));
-            }else{
-              message.channel.send("The following emote cannot be used in reactions:\n`"+args[1]+"`\nIf you upload it to a server the bot's in, it will become usable in reactions!").then(msg => {
-                             msg.delete({ timeout: 10000 })
-                          })
-                          .catch(e=> console.log(e));
-            }
+          if(args[1].match(emoteRegexString) || args[1].match(emoteAnimatedRegexString)){
+            await messageRefrenced.react(args[1]);
+            var indexOfFirstColon = args[1].indexOf(":");
+            var indexOfEmoteEndColon =  args[1].indexOf(":",indexOfFirstColon+1);
+            var realEmoteName = args[1].substring(indexOfFirstColon+1,indexOfEmoteEndColon);
+            removeReaction(messageRefrenced,realEmoteName);
           }
           else{
-            await messageRefrenced.react(emote);
-            removeReaction(messageRefrenced,args[1]);
+            if (args[1].charAt(0) == ':' && args[1].charAt(args[1].length-1)==':'){
+              args[1] = args[1].substring(1,args[1].length-1);
+            }
+            var emote = checkForEmoteIncache(args[1]);
+            if(emote == ''){
+              var emoteinDb = checkForEmoteInDb(args[1]);
+              console.log("emoteinDb",emoteinDb);
+              if(emoteinDb == ''){
+                message.channel.send("Could not find emote: \n`"+args[1]+"`").then(msg => {
+                               msg.delete({ timeout: 10000 })
+                            })
+                            .catch(e=> console.log(e));
+              }else{
+                message.channel.send("The following emote cannot be used in reactions:\n`"+args[1]+"`\nIf you upload it to a server the bot's in, it will become usable in reactions!").then(msg => {
+                               msg.delete({ timeout: 10000 })
+                            })
+                            .catch(e=> console.log(e));
+              }
+            }
+            else{
+              await messageRefrenced.react(emote);
+              removeReaction(messageRefrenced,args[1]);
+            }
           }
           return await message.delete();
         }
