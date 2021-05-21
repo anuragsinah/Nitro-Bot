@@ -364,12 +364,20 @@ client.on('message', async (message) => {
 
 exp.get('/', async (req, res)=>{
     try{
-       var htmlContent = '<table border=1>';
+       var htmlContent = '<html><h2> Number of emotes- '+Object.keys(emoteMap).length+'</h2>'
+       htmlContent = htmlContent+ '<table border=1>';
        htmlContent = htmlContent+ '<tr><th>Emote Name</th>';
        htmlContent = htmlContent+ '<th>Image/Gif</th>';
        htmlContent = htmlContent+ '<th>Emote Id</th></tr>';
-       for (const [key, value] of Object.entries(emoteMap)) {
-         console.log(`${key}: ${value}`);
+       const ordered = Object.keys(emoteMap).sort().reduce(
+         (obj, key) => {
+           obj[key] = emoteMap[key];
+           return obj;
+         },
+         {}
+       );
+       console.log(Object.keys(emoteMap).length);
+       for (const [key, value] of Object.entries(ordered)) {
          var name = ':'+key+':';
          var lastIndexOfColon = value.lastIndexOf(":");
          var id = value.substring(lastIndexOfColon+1,value.length-1)
@@ -377,7 +385,7 @@ exp.get('/', async (req, res)=>{
          htmlContent = htmlContent+ '<tr><td>'+name+'</td>';
          htmlContent = htmlContent+ '<td>'+'<img src='+url+ ' alt=""  width=100/>'+'</td>';
          //htmlContent = htmlContent+'<td>'+ url+'</td>'
-         htmlContent = htmlContent+ '<td>'+id+'</td></tr>';
+         htmlContent = htmlContent+ '<td>'+id+'</td></tr></html>';
        }
        res.writeHead(200, { 'Content-Type': 'text/html' });
        res.write(htmlContent);
