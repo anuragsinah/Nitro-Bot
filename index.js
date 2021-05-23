@@ -335,7 +335,7 @@ client.on('message', async (message) => {
                     .setAuthor(messageRefrenced.author.username, "https://cdn.discordapp.com/avatars/" + messageRefrenced.author.id + "/" + messageRefrenced.author.avatar + ".png")
                     .setDescription(messageRefrenced.content)
                     .addField('**Jump**', '[Go to message]('+messageUrl+')')
-                    .setFooter('#'+messageRefrenced.channel.name)
+                    .setFooter('#'+messageRefrenced.channel.name+' - EIN-Bot')
                     .setTimestamp(messageRefrenced.createdAt);
                 var webhookResponse = await webhook.send(replyMessage, {
                     username:   userName,
