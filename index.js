@@ -311,6 +311,7 @@ client.on('message', async (message) => {
             }
         }
         emoteArrayIndex = []
+        return;
         if (message.author.bot) {
             return;
         }
