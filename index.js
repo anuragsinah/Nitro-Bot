@@ -76,7 +76,7 @@ function checkForEmoteIncache(emoteName) {
     var emoteString = "";
     var emoteInCache = client.emojis.cache.find(emoji => emoji.name == emoteName);
     if (emoteInCache != undefined) {
-        if (!emoteInCache.deleted) {
+        if (!emoteInCache.deleted  && emoteInCache.available ) {
             if (emoteInCache.animated) {
                 emoteString = "<a:" + emoteInCache.name + ":" + emoteInCache.id + ">"
             } else {
