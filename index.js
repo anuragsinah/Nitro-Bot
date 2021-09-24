@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const client = new Discord.Client();
+const client = new Discord.Client({ disableMentions: 'everyone' });
 const admin = require('firebase-admin');
 fs = require('fs');
 var unirest = require('unirest');
